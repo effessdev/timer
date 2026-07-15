@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --text: #1d1d1f;
+        --border: #d2d2d7;
+        --play: #007aff;
+        --play-hover: #0066cc;
+        --stop: #ff3b30;
+        --stop-hover: #d70015;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #1c1c1e;
+          --text: #f5f5f7;
+          --border: #38383a;
+          --play: #0a84ff;
+          --play-hover: #007aff;
+          --stop: #ff453a;
+          --stop-hover: #ff3b30;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .card {
+        background: var(--surface);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        width: 90%;
+        max-width: 300px;
+      }
+
+      .input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      input[type="number"] {
+        -moz-appearance: textfield;
+        font-size: 3rem;
+        width: 100px;
+        text-align: center;
+        background: transparent;
+        color: var(--text);
+        border: none;
+        font-weight: 600;
+        outline: none;
+      }
+
+      .arrow-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 1.25rem;
+        cursor: pointer;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .play-btn {
+        width: 100%;
+        padding: 1rem;
+        background: var(--play);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .play-btn.stop {
+        background: var(--stop);
+      }
+      .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin-bottom: -1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="label">Seconds</div>
+      <div class="input-wrapper">
+        <button class="arrow-btn" id="decBtn">−</button>
+        <input type="number" id="interval" value="15" min="1" />
+        <button class="arrow-btn" id="incBtn">+</button>
+      </div>
+
+      <div class="label" style="margin-bottom: -0.5rem">Volume</div>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" />
+
+      <button id="playBtn" class="play-btn">Start</button>
+    </div>
+
+    <script>
+      let audioCtx
+      let timerId
+      let isPlaying = false
+
+      const input = document.getElementById("interval")
+      const volInput = document.getElementById("volume")
+      const playBtn = document.getElementById("playBtn")
+
+      document
+        .getElementById("decBtn")
+        .addEventListener(
+          "click",
+          () => (input.value = Math.max(1, input.value - 1))
+        )
+      document
+        .getElementById("incBtn")
+        .addEventListener(
+          "click",
+          () => (input.value = parseInt(input.value) + 1)
+        )
+
+      function playAlert() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+
+        // Create a square wave for a louder, more piercing sound
+        const osc = audioCtx.createOscillator()
+        const gain = audioCtx.createGain()
+        const osc2 = audioCtx.createOscillator()
+
+        osc.type = "square"
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime)
+
+        osc2.type = "square"
+        osc2.frequency.setValueAtTime(554.37, audioCtx.currentTime) // Perfect major third
+
+        gain.gain.setValueAtTime(volInput.value, audioCtx.currentTime)
+        // Sustained for 0.5 seconds
+        gain.gain.setValueAtTime(volInput.value, audioCtx.currentTime + 0.5)
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + 0.6
+        )
+
+        osc.connect(gain)
+        osc2.connect(gain)
+        gain.connect(audioCtx.destination)
+
+        osc.start()
+        osc2.start()
+        osc.stop(audioCtx.currentTime + 0.6)
+        osc2.stop(audioCtx.currentTime + 0.6)
+      }
+
+      playBtn.addEventListener("click", () => {
+        if (isPlaying) {
+          clearInterval(timerId)
+          playBtn.textContent = "Start"
+          playBtn.classList.remove("stop")
+          isPlaying = false
+        } else {
+          if (!audioCtx)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+          if (audioCtx.state === "suspended") audioCtx.resume()
+          playAlert()
+          timerId = setInterval(playAlert, input.value * 1000)
+          playBtn.textContent = "Stop"
+          playBtn.classList.add("stop")
+          isPlaying = true
+        }
+      })
+    </script>
+  </body>
+</html>
