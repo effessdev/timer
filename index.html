@@ -1,209 +1,357 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      :root {
-        --bg: #f5f5f7;
-        --surface: #ffffff;
-        --text: #1d1d1f;
-        --border: #d2d2d7;
-        --play: #007aff;
-        --play-hover: #0066cc;
-        --stop: #ff3b30;
-        --stop-hover: #d70015;
-      }
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Workout Timer</title>
 
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #000000;
-          --surface: #1c1c1e;
-          --text: #f5f5f7;
-          --border: #38383a;
-          --play: #0a84ff;
-          --play-hover: #007aff;
-          --stop: #ff453a;
-          --stop-hover: #ff3b30;
-        }
-      }
+<style>
+:root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --card-hover:#334155;
+    --accent:#38bdf8;
+    --accent2:#22c55e;
+    --danger:#ef4444;
+    --text:#f8fafc;
+    --muted:#94a3b8;
+}
 
-      * {
-        box-sizing: border-box;
-      }
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+}
 
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        font-family:
-          system-ui,
-          -apple-system,
-          sans-serif;
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-      }
+body{
+    background:linear-gradient(135deg,#020617,#111827);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+}
 
-      .card {
-        background: var(--surface);
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-        width: 90%;
-        max-width: 300px;
-      }
+.container{
+    width:min(900px,100%);
+}
 
-      .input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
+h1{
+    text-align:center;
+    font-size:2.4rem;
+    margin-bottom:10px;
+}
 
-      input[type="number"] {
-        -moz-appearance: textfield;
-        font-size: 3rem;
-        width: 100px;
-        text-align: center;
-        background: transparent;
-        color: var(--text);
-        border: none;
-        font-weight: 600;
-        outline: none;
-      }
+.subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin-bottom:35px;
+}
 
-      .arrow-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: 1px solid var(--border);
-        background: transparent;
-        color: var(--text);
-        font-size: 1.25rem;
-        cursor: pointer;
-      }
+.settings{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin-bottom:30px;
+}
 
-      input[type="range"] {
-        width: 100%;
-        cursor: pointer;
-      }
+.settings input{
+    width:80px;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#1e293b;
+    color:white;
+    text-align:center;
+    font-size:1rem;
+}
 
-      .play-btn {
-        width: 100%;
-        padding: 1rem;
-        background: var(--play);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-      }
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:20px;
+}
 
-      .play-btn.stop {
-        background: var(--stop);
-      }
-      .label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        opacity: 0.6;
-        margin-bottom: -1rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <div class="label">Seconds</div>
-      <div class="input-wrapper">
-        <button class="arrow-btn" id="decBtn">−</button>
-        <input type="number" id="interval" value="15" min="1" />
-        <button class="arrow-btn" id="incBtn">+</button>
-      </div>
+.timer{
+    background:var(--card);
+    border-radius:18px;
+    padding:30px;
+    text-align:center;
+    cursor:pointer;
+    transition:.25s;
+    user-select:none;
+    border:1px solid rgba(255,255,255,.05);
+}
 
-      <div class="label" style="margin-bottom: -0.5rem">Volume</div>
-      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" />
+.timer:hover{
+    transform:translateY(-4px);
+    background:var(--card-hover);
+}
 
-      <button id="playBtn" class="play-btn">Start</button>
-    </div>
+.timer.running{
+    outline:3px solid var(--accent);
+}
 
-    <script>
-      let audioCtx
-      let timerId
-      let isPlaying = false
+.timer h2{
+    font-size:2.6rem;
+}
 
-      const input = document.getElementById("interval")
-      const volInput = document.getElementById("volume")
-      const playBtn = document.getElementById("playBtn")
+.timer p{
+    margin-top:10px;
+    color:var(--muted);
+}
 
-      document
-        .getElementById("decBtn")
-        .addEventListener(
-          "click",
-          () => (input.value = Math.max(1, input.value - 1))
-        )
-      document
-        .getElementById("incBtn")
-        .addEventListener(
-          "click",
-          () => (input.value = parseInt(input.value) + 1)
-        )
+.status{
+    margin-top:35px;
+    text-align:center;
+    font-size:1.1rem;
+    min-height:30px;
+}
 
-      function playAlert() {
-        if (!audioCtx)
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+.big{
+    font-size:4rem;
+    margin-top:10px;
+    font-weight:bold;
+}
 
-        // Create a square wave for a louder, more piercing sound
-        const osc = audioCtx.createOscillator()
-        const gain = audioCtx.createGain()
-        const osc2 = audioCtx.createOscillator()
+.controls{
+    display:flex;
+    justify-content:center;
+    margin-top:30px;
+}
 
-        osc.type = "square"
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime)
+button{
+    padding:14px 28px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background:var(--danger);
+    color:white;
+    font-size:1rem;
+    transition:.2s;
+}
 
-        osc2.type = "square"
-        osc2.frequency.setValueAtTime(554.37, audioCtx.currentTime) // Perfect major third
+button:hover{
+    filter:brightness(1.1);
+}
 
-        gain.gain.setValueAtTime(volInput.value, audioCtx.currentTime)
-        // Sustained for 0.5 seconds
-        gain.gain.setValueAtTime(volInput.value, audioCtx.currentTime + 0.5)
-        gain.gain.exponentialRampToValueAtTime(
-          0.001,
-          audioCtx.currentTime + 0.6
-        )
+.hidden{
+    display:none;
+}
+</style>
+</head>
 
-        osc.connect(gain)
-        osc2.connect(gain)
-        gain.connect(audioCtx.destination)
+<body>
 
-        osc.start()
-        osc2.start()
-        osc.stop(audioCtx.currentTime + 0.6)
-        osc2.stop(audioCtx.currentTime + 0.6)
-      }
+<div class="container">
 
-      playBtn.addEventListener("click", () => {
-        if (isPlaying) {
-          clearInterval(timerId)
-          playBtn.textContent = "Start"
-          playBtn.classList.remove("stop")
-          isPlaying = false
-        } else {
-          if (!audioCtx)
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-          if (audioCtx.state === "suspended") audioCtx.resume()
-          playAlert()
-          timerId = setInterval(playAlert, input.value * 1000)
-          playBtn.textContent = "Stop"
-          playBtn.classList.add("stop")
-          isPlaying = true
-        }
-      })
-    </script>
-  </body>
+<h1>🏋 Workout Timer</h1>
+<div class="subtitle">
+Click any timer to begin.
+</div>
+
+<div class="settings">
+<label>Start Delay</label>
+<input id="delayInput" type="number" value="3" min="0">
+<span>seconds</span>
+</div>
+
+<div class="grid">
+
+<div class="timer" data-time="15">
+<h2>15</h2>
+<p>seconds</p>
+</div>
+
+<div class="timer" data-time="30">
+<h2>30</h2>
+<p>seconds</p>
+</div>
+
+<div class="timer" data-time="45">
+<h2>45</h2>
+<p>seconds</p>
+</div>
+
+<div class="timer" data-time="60">
+<h2>60</h2>
+<p>seconds</p>
+</div>
+
+</div>
+
+<div class="status">
+<div id="message">Ready</div>
+<div id="countdown" class="big"></div>
+</div>
+
+<div class="controls">
+<button id="cancel" class="hidden">Cancel Timer</button>
+</div>
+
+</div>
+
+<script>
+const message=document.getElementById("message");
+const countdown=document.getElementById("countdown");
+const cancelBtn=document.getElementById("cancel");
+const delayInput=document.getElementById("delayInput");
+
+let timeout=null;
+let interval=null;
+let running=false;
+let currentCard=null;
+let audioCtx=null;
+
+function beep(freq,duration,type="sine",volume=.2){
+
+    if(!audioCtx)
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+
+    osc.type=type;
+    osc.frequency.value=freq;
+
+    gain.gain.value=volume;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audioCtx.currentTime+duration/1000
+    );
+
+    osc.stop(audioCtx.currentTime+duration/1000);
+}
+
+/* Pea whistle */
+function startSound(){
+
+    beep(1200,120,"square",0.3);
+
+    setTimeout(()=>{
+        beep(1500,120,"square",0.25);
+    },90);
+
+}
+
+/* Finish sound */
+function finishSound(){
+
+    beep(800,180,"triangle",0.25);
+
+    setTimeout(()=>{
+        beep(600,350,"triangle",0.25);
+    },170);
+
+}
+
+function clearEverything(){
+
+    clearTimeout(timeout);
+    clearInterval(interval);
+
+    running=false;
+
+    cancelBtn.classList.add("hidden");
+
+    if(currentCard)
+        currentCard.classList.remove("running");
+
+    currentCard=null;
+
+    countdown.textContent="";
+}
+
+function cancel(){
+
+    clearEverything();
+    message.textContent="Cancelled";
+
+}
+
+cancelBtn.onclick=cancel;
+
+document.querySelectorAll(".timer").forEach(card=>{
+
+card.onclick=()=>{
+
+if(running) return;
+
+running=true;
+
+currentCard=card;
+card.classList.add("running");
+cancelBtn.classList.remove("hidden");
+
+const delay=Math.max(0,Number(delayInput.value)||0);
+
+let remain=delay;
+
+message.textContent="Starting...";
+
+countdown.textContent=remain;
+
+interval=setInterval(()=>{
+
+remain--;
+
+if(remain>0)
+    countdown.textContent=remain;
+
+},1000);
+
+timeout=setTimeout(()=>{
+
+clearInterval(interval);
+
+startSound();
+
+let left=Number(card.dataset.time);
+
+message.textContent="Workout!";
+countdown.textContent=left;
+
+interval=setInterval(()=>{
+
+left--;
+
+countdown.textContent=left;
+
+if(left<=0){
+
+clearInterval(interval);
+
+finishSound();
+
+message.textContent="Finished 🎉";
+
+countdown.textContent="";
+
+running=false;
+
+card.classList.remove("running");
+
+cancelBtn.classList.add("hidden");
+
+}
+
+},1000);
+
+},delay*1000);
+
+};
+
+});
+</script>
+
+</body>
 </html>
